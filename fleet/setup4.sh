@@ -1,0 +1,41 @@
+#!/bin/bash
+# Uploads the cave search as it stands and builds it in /root/caves on a rented box with a CUDA card:
+#   the gate (seedgate13: GPU phase scan with the terrain score, GPU coarse look and first look, CPU looks on a set number of threads, full gate),
+#   gpusrv, the GPU's services for the workers (the scanner's terrain step, its tables and formula step, the formula
+#   stage, the exact measurer's corner densities), and the workers' programs that use them (cavepairs5, formulacave5,
+#   native/cavemeasure), the driver, cubiomes.
+# Then on the box: nvidia-cuda-mps-control -d (so that gate and gpusrv share the card), ./start_g13.sh.
+# usage: setup4.sh NAME [ARCH=sm_89]     (ARCH: the card's architecture for nvcc: sm_89 RTX 40, sm_86 RTX 30 / A2000, sm_75 RTX 20)
+export FLEET_PREFIX=cv- VAST_SSH_KEY=${VAST_SSH_KEY:-$HOME/.ssh/vastai}
+L="$(cd "$(dirname "$0")/../.." && pwd)"; B="$L/desert-search/deploy/box.sh"; N=$1; ARCH=${2:-sm_89}
+tmp=$(mktemp --suffix=.tgz)
+tar czf "$tmp" -C "$L/caves" cavepairs3.cpp cavepairs5.cpp formulacave.cpp formulacave5.cpp seedgate10.cpp seedgate12.cpp seedgate13.cpp cavenoise.hpp cpuprelook.hpp tableseed.hpp analyticgate.hpp percgate.hpp name_hashes.h noise_params.h \
+    gpuscan.cu gpuscan.h gputables.cu gpulook.cu gputerrain.cu gputerrain.h gpuformula.cu gpupairs.cu terrainseed.hpp gpusrv.cpp search3.py stats/scanbench.cpp stats/lookcheck.cpp stats/gpucheck.cpp \
+    native/density_gen.hpp native/gamegen_types.hpp native/gamegen.hpp native/cavemeasure.cpp native/gamegen_dev.hpp native/gen_density_dev.py native/gpudensity.cu native/gpudensity.h native/densitypack.hpp native/densitycheck.cpp \
+    -C "$L/caves/fleet/box" start_g13.sh rate.sh -C "$L/caves/vendor" cubiomes || exit 1
+ok=0
+for try in 1 2 3 4 5 6; do
+    timeout 60 "$B" "$N" 'mkdir -p /root/caves' 2>/dev/null && timeout 180 "$B" "$N" put "$tmp" /root/caves.tgz 2>/dev/null && { ok=1; break; }
+    sleep 15
+done
+rm -f "$tmp"; [ $ok = 1 ] || { echo "$N: upload failed"; exit 1; }
+timeout 1800 "$B" "$N" '( cd /root/caves && tar xzf ../caves.tgz && export PATH=/usr/local/cuda/bin:$PATH LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH ARCH='"$ARCH"'
+(command -v g++ >/dev/null && command -v python3 >/dev/null) || (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq g++ gcc python3 >/dev/null 2>&1)
+C="-L/usr/local/cuda/lib64 -lcudart -lpthread"; fail() { echo "$1 FAILED"; }
+for f in noise biomes layers biomenoise; do gcc -O3 -march=native -fwrapv -c -o cub_$f.o cubiomes/$f.c || fail "cubiomes $f"; done
+for f in gpuscan gputables gpulook gputerrain gpuformula gpupairs; do nvcc -O3 -arch=$ARCH -c $f.cu -o $f.o || fail $f; done
+(cd native && python3 gen_density_dev.py > /dev/null && nvcc -O3 --fmad=false -arch=$ARCH -c gpudensity.cu -o gpudensity.o) || fail gpudensity
+g++ -O3 -march=native -std=c++17 -I cubiomes cavepairs5.cpp cub_*.o -lpthread -o cavepairs5 || fail cavepairs5
+g++ -O3 -march=native -std=c++17 -I cubiomes cavepairs3.cpp cub_*.o -lpthread -o cavepairs3 || fail cavepairs3
+g++ -O3 -march=native -std=c++17 -I cubiomes formulacave5.cpp cub_*.o -lpthread -o formulacave || fail formulacave
+g++ -O3 -march=native -std=c++17 -ffp-contract=off -I cubiomes native/cavemeasure.cpp cub_noise.o -lpthread -o native/cavemeasure || fail cavemeasure
+g++ -O3 -march=native -std=c++17 -I cubiomes seedgate12.cpp gpuscan.o gputables.o gpulook.o cub_noise.o $C -o seedgate12 || fail seedgate12
+g++ -O3 -march=native -std=c++17 -I cubiomes seedgate13.cpp gpuscan.o gputables.o gpulook.o cub_noise.o $C -o seedgate13 || fail seedgate13
+g++ -O3 -march=native -std=c++17 -I cubiomes seedgate10.cpp gpuscan.o gputables.o cub_noise.o $C -o seedgate10 || fail seedgate10
+g++ -O3 -march=native -std=c++17 -ffp-contract=off -I cubiomes gpusrv.cpp gputerrain.o gpuformula.o gpupairs.o native/gpudensity.o cub_*.o $C -o gpusrv 2>&1 | grep -E " error " ; [ -x gpusrv ] || fail gpusrv
+(cd native && g++ -O3 -march=native -std=c++17 -ffp-contract=off -I ../cubiomes densitycheck.cpp gpudensity.o ../cub_noise.o $C -o densitycheck) || fail densitycheck
+g++ -O3 -march=native -std=c++17 -I . -I cubiomes stats/gpucheck.cpp gpuscan.o gpulook.o cub_noise.o $C -o gpucheck || fail gpucheck
+command cp -f search3.py search3_new.py; chmod +x search3.py start_g13.sh rate.sh
+ls -la cavepairs5 formulacave native/cavemeasure seedgate12 seedgate13 gpusrv native/densitycheck gpucheck | awk "{print \$5, \$9}"
+nproc; cat /sys/fs/cgroup/cpu.max 2>/dev/null; cat /sys/fs/cgroup/cpu,cpuacct/cpu.cfs_quota_us /sys/fs/cgroup/cpu,cpuacct/cpu.cfs_period_us 2>/dev/null; grep -m1 "model name" /proc/cpuinfo; nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+echo "checks: ./gpucheck terrain; ./gpucheck look; native/densitycheck SEED X Z   then: nvidia-cuda-mps-control -d; GATE=seedgate13 CPU_LOOKS=17 GATE_THREADS=31 PER_THREAD=512 WORKERS=46 PRE=-0.472 ./start_g13.sh; ./rate.sh 240 (the rates, to judge a setting by)" ) 2>&1'

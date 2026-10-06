@@ -1,0 +1,31 @@
+#!/bin/bash
+# run g10: seedgate8 (GPU phase scan and first look; the CPU gate adds the percolation term: the connected volume of low
+# smooth noise over the best alignments) on the seeds after g9's, and the workers on its list. Settings from the
+# environment (GATE_THREADS PRINT PRE PERC TERRAIN C8 W8 C7 W7 TABLE_BATCH WORKERS PAIRS MIN_CUT MIN_SCORE FO_MIN O_WEIGHT ...).
+# ONLY_GATE=1: restart the gate alone. ONLY_WORKERS=1: restart the workers alone.
+cd /root/caves || exit 1
+export PATH=/usr/local/cuda/bin:$PATH LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+[ -x seedgate8 ] || { echo "no seedgate8"; exit 1; }
+mkdir -p runs/g10/claims
+PRINT=${PRINT:--0.556}; TERRAIN=${TERRAIN:-0.55}; GATE_THREADS=${GATE_THREADS:-12}; export PRE=${PRE:--0.4365} PERC=${PERC:-0.0912} TABLE_BATCH=${TABLE_BATCH:-2048}
+if [ -z "$ONLY_GATE" ]; then pkill -x python3; fi
+if [ -z "$ONLY_WORKERS" ]; then pkill -x seedgate5; pkill -x seedgate6; pkill -x seedgate7; pkill -x seedgate8; fi
+sleep 1
+if [ -z "$ONLY_GATE" ]; then pkill -x cavepairs3; pkill -x formulacave; pkill -x cavemeasure; sleep 1; command cp -f search3_new.py search3.py; chmod +x search3.py; fi
+if [ -z "$ONLY_WORKERS" ]; then
+    LAST=$(cat runs/g9/gate.log runs/g10/gate.log 2>/dev/null | grep -o "next seed [0-9]*" | awk '{print $3}' | sort -n | tail -1)
+    FIRST=$(( (LAST / 100000000000 + 2) * 100000000000 ))
+    echo "$FIRST $(date -u +%FT%TZ) seedgate8 on $GATE_THREADS threads: terrain <= -$TERRAIN, phases ${C8:-0.542} +- ${W8:-0.04} and ${C7:-0.584} +- ${W7:-0.08}, first look <= $PRE, print score - $PERC x volume <= $PRINT" >> runs/g10/gate_first.txt
+    nohup ./seedgate8 $FIRST 9000000000000000000 $GATE_THREADS $PRINT ${C8:-0.542} ${W8:-0.04} ${C7:-0.584} ${W7:-0.08} $TERRAIN >> runs/g10/gate.txt 2>> runs/g10/gate.log &
+    echo "$(date -u +%FT%TZ) gate: seedgate8 from $FIRST, $GATE_THREADS threads, terrain <= -$TERRAIN, first look <= $PRE, print <= $PRINT (weight $PERC); from seed line $(cat runs/g10/seeds.txt 2>/dev/null | wc -l)" >> runs/g10/settings.txt
+fi
+if [ -z "$ONLY_GATE" ]; then
+    awk '{print $1}' runs/g10/seeds.txt 2>/dev/null | sort > /tmp/done10.txt
+    n=0; for c in $(ls -t runs/g10/claims | head -400); do grep -qx "$c" /tmp/done10.txt || { rm -f runs/g10/claims/$c; n=$((n + 1)); }; done
+    export BEST_START=49120395 RATIO=0 FLOOR=${FLOOR:-28e6} F_MID=${F_MID:-25e6} O_MID=${O_MID:-34e6} F_LOW=${F_LOW:-23e6} O_HIGH=${O_HIGH:-38e6} FO_MIN=${FO_MIN:-102e6} O_WEIGHT=${O_WEIGHT:-2} PER_SEED=40 SCANNER=cavepairs3 PAIRS=${PAIRS:-200000} TOP=600 PLACES=${PLACES:-5000} MIN_SCORE=${MIN_SCORE:-2200} MIN_CUT=${MIN_CUT:-292} S2_MIN=${S2_MIN:-21e6} TERRAIN_DIV=1e12
+    [ -z "$ONLY_WORKERS" ] && sleep 15
+    for i in $(seq 1 ${WORKERS:-56}); do nohup ./search3.py g10 runs/g10/gate.txt ${TAKE:--0.5} 4 >> runs/g10/search$i.out 2>&1 & done
+    echo "$(date -u +%FT%TZ) workers: ${WORKERS:-56}; exact for F + $O_WEIGHT O >= $FO_MIN and (F >= $FLOOR or (F >= $F_MID and O >= $O_MID) or (F >= $F_LOW and O >= $O_HIGH)); PAIRS $PAIRS, MIN_CUT $MIN_CUT, PLACES $PLACES, MIN_SCORE $MIN_SCORE; $n seeds back on the list; from seed line $(cat runs/g10/seeds.txt 2>/dev/null | wc -l)" >> runs/g10/settings.txt
+fi
+sleep 75; tail -n 2 runs/g10/gate.log | cut -c1-330; echo "workers: $(pgrep -x python3 | wc -l); gate: $(pgrep -x seedgate8 | wc -l); gate lines: $(wc -l < runs/g10/gate.txt); g10 seeds done: $(cat runs/g10/seeds.txt 2>/dev/null | wc -l)"
+nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu --format=csv,noheader; date -u +%T

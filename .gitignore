@@ -1,0 +1,57 @@
+# Programs are built next to their sources without an extension: ignore every file that has none.
+*
+!*/
+!*.*
+
+# The game itself (Mojang's): server jar, libraries, decompiled sources, data. Fetch your own into mc/ (see README).
+/mc/
+
+# Downloads from the rented boxes, run directories and working state
+/final/
+/runs/
+/state/
+/logs/
+/hits/
+*.log
+*.pid
+*.progress
+*.fails
+*.down
+*.sec
+
+# Built or generated
+*.o
+*.class
+*.pyc
+__pycache__/
+out/
+/record/cavern_page.html
+/record/preview.html
+/seedcaves/explorer/index.html
+/seedcaves/explorer/cells/
+
+# Bulk data
+*.bin
+*.npz
+*.npy
+*.raw
+*.gz
+*.tgz
+*.txz
+*.jar
+/cave_*.png
+/stats/*/
+!/stats/limits/
+/stats/*.txt
+
+# The two side studies (one seed's caverns, deep dark): code and headline results only
+/seedcaves/**/*.txt
+/seedcaves/**/*.out
+/seedcaves/**/*.err
+/seedcaves/**/*.in
+/seedcaves/seeds/
+/seedcaves/ladder4/
+!/seedcaves/frontier.txt
+/deepdark/**/*.txt
+/deepdark/**/*.err
+/deepdark/**/*.time

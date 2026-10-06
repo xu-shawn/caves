@@ -1,0 +1,43 @@
+{
+ "seed": "6008414183811625950",
+ "tp": [
+  19079170,
+  13,
+  -7883600
+ ],
+ "volume": 55830955,
+ "columns": 1220474,
+ "box": [
+  19078224,
+  19080265,
+  -54,
+  183,
+  -7884687,
+  -7882558
+ ],
+ "size": [
+  2042,
+  238,
+  2130
+ ],
+ "mean_open_height": 45.74530469309465,
+ "largest_open_height": 192,
+ "share_of_box_footprint": 0.28060356917870266,
+ "widest_level": 18,
+ "columns_at_widest_level": 594707,
+ "half_volume_below_y": 10,
+ "viewer": {
+  "cell": 4,
+  "shape_yzx": [
+   60,
+   533,
+   511
+  ],
+  "origin": [
+   19078224,
+   -56,
+   -7884687
+  ],
+  "cells": 929475
+ }
+}

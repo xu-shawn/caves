@@ -1,0 +1,198 @@
+<title>The 55.8M Cavern</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: a survey sheet. One column, the 3D view first, then plan, cuts and the table of numbers; coordinates in mono */
+:root {
+  --bg: #f3f4f1; --panel: #fbfbf9; --ink: #171a1c; --ink2: #4c5357; --muted: #7f878b; --rule: #d9dcd6; --accent: #1f67c2; --accent-ink: #ffffff; --pit: #14110f;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; --body: "Barlow", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #121416; --panel: #1a1d20; --ink: #eceeea; --ink2: #b4bbbd; --muted: #868e91; --rule: #2e3336; --accent: #6aa5ee; --accent-ink: #0c1218; --pit: #0c0a09; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #121416; --panel: #1a1d20; --ink: #eceeea; --ink2: #b4bbbd; --muted: #868e91; --rule: #2e3336; --accent: #6aa5ee; --accent-ink: #0c1218; --pit: #0c0a09; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+.sheet { max-width: 1120px; margin-inline: auto; padding-inline: 20px; padding-block: 28px 56px; display: flex; flex-direction: column; gap: 36px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1; letter-spacing: 0.005em; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 1.6rem; line-height: 1.1; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; color: var(--ink2); }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 14px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border-block: 1px solid var(--rule); }
+.fact { padding: 12px 14px 12px 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fact b { font-family: var(--display); font-weight: 600; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 0.85rem; color: var(--muted); }
+.tp { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+code, .mono { font-family: var(--mono); font-size: 0.92rem; }
+.tp code { background: var(--panel); border: 1px solid var(--rule); padding: 7px 10px; border-radius: 3px; overflow-wrap: anywhere; user-select: all; }
+button { font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 7px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+section { display: flex; flex-direction: column; gap: 14px; }
+.viewer { position: relative; background: var(--pit); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; aspect-ratio: 16 / 10; max-width: 100%; touch-action: none; cursor: grab; }
+.viewer.dragging { cursor: grabbing; }
+.viewer canvas, .viewer img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.north { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; pointer-events: none; color: #f2ead9; }
+.hint { position: absolute; left: 12px; bottom: 10px; font-family: var(--mono); font-size: 0.72rem; color: #cdbfa8; pointer-events: none; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.controls label { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--ink2); min-width: 0; flex: 1 1 260px; }
+.controls input[type="range"] { flex: 1 1 120px; min-width: 80px; accent-color: var(--accent); }
+.controls output { font-family: var(--mono); font-size: 0.85rem; min-width: 5.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+figure img { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 3px; background: #fcfcfb; }
+figcaption { font-size: 0.88rem; color: var(--muted); max-width: 80ch; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; color: var(--ink2); width: 46%; }
+td { font-family: var(--mono); font-size: 0.92rem; }
+footer p { font-size: 0.88rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+<div class="sheet">
+  <header>
+    <div class="eyebrow">Minecraft 26.3 · noise terrain and aquifers · largest cavern found</div>
+    <h1>__VOLUME__ blocks of connected cave</h1>
+    <p>One cavern, joined everywhere by passages at least seven blocks wide, under mountains nineteen million blocks east of the origin. Its volume was confirmed block for block with the game's own terrain code.</p>
+    <div class="tp"><code id="tp">/tp __TPX__ __TPY__ __TPZ__</code><button id="copy" type="button">Copy command</button><span class="mono" style="color:var(--muted)">seed __SEED__</span></div>
+    <div class="facts">
+      <div class="fact"><b>__SX__ × __SZ__</b><span>blocks across, west–east by north–south</span></div>
+      <div class="fact"><b>y __Y0__ to __Y1__</b><span>from the lava level up into the mountains</span></div>
+      <div class="fact"><b>__COLUMNS__</b><span>columns have cavern under them</span></div>
+      <div class="fact"><b>__MEAN__ blocks</b><span>of open height per column, on average</span></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="h3d">
+    <h2 id="h3d">The cavern as a solid</h2>
+    <p>The air is drawn and the rock is left out, on cells of four blocks. Drag to turn it, scroll or pinch to move closer, and lower the cut to take the upper levels away.</p>
+    <div class="viewer" id="viewer">
+      <canvas id="gl" aria-label="Three-dimensional view of the cavern"></canvas>
+      <img id="still" alt="The cavern as a solid, seen from above the south-east" src="__RENDER__" hidden>
+      <svg class="north" id="north" viewBox="-22 -22 44 44" aria-hidden="true"><circle r="20" fill="none" stroke="currentColor" stroke-opacity="0.35"/><g id="needle"><path d="M0 -17 L5 3 L0 0 L-5 3 Z" fill="currentColor"/><text y="15" text-anchor="middle" font-size="9" font-family="monospace" fill="currentColor">N</text></g></svg>
+      <div class="hint" id="hint">drag · scroll · pinch</div>
+    </div>
+    <div class="controls">
+      <label for="cut">Cut away above <input id="cut" type="range" min="__Y0__" max="__YTOP__" step="4" value="__YTOP__"><output id="cutv" for="cut">y __YTOP__</output></label>
+      <div class="group" role="group" aria-label="Heights drawn at">
+        <button type="button" data-ex="1" aria-pressed="false">Heights ×1</button><button type="button" data-ex="2" aria-pressed="true">×2</button><button type="button" data-ex="4" aria-pressed="false">×4</button>
+      </div>
+      <div class="group" role="group" aria-label="View">
+        <button type="button" data-view="oblique">From the south-east</button><button type="button" data-view="top">From above</button><button type="button" data-view="side">From the south</button>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hmap">
+    <h2 id="hmap">From above</h2>
+    <figure><img src="__MAP__" alt="Plan of the cavern: open height per column, with its roof and floor heights" loading="lazy">
+      <figcaption>Left: how many blocks of the cavern lie under each column. Right: the height of its highest and of its lowest block there. The cross is the teleport point.</figcaption></figure>
+  </section>
+
+  <section aria-labelledby="hcut">
+    <h2 id="hcut">Cut through the teleport point</h2>
+    <figure><img src="__SECTIONS__" alt="Two vertical cuts through the terrain with the cavern picked out, and the cavern's area at each height" loading="lazy">
+      <figcaption>Two vertical cuts of the whole terrain, west to east and north to south, with this cavern in orange and every other cave in cream. Below them, the number of open columns at each height: half of the volume lies under y __HALF__.</figcaption></figure>
+  </section>
+
+  <section aria-labelledby="hnum">
+    <h2 id="hnum">In numbers</h2>
+    <div class="tablewrap"><table>
+      <tr><th scope="row">Volume</th><td>__VOLUME__ blocks</td></tr>
+      <tr><th scope="row">Seed</th><td>__SEED__</td></tr>
+      <tr><th scope="row">Bounding box</th><td>x __X0__ … __X1__<br>y __Y0__ … __Y1__<br>z __Z0__ … __Z1__</td></tr>
+      <tr><th scope="row">Size of the box</th><td>__SX__ × __SY__ × __SZ__ blocks (x, y, z)</td></tr>
+      <tr><th scope="row">Columns with cavern under them</th><td>__COLUMNS__ (__SHARE__% of the box's footprint)</td></tr>
+      <tr><th scope="row">Open height per column</th><td>__MEAN__ on average, __MAXH__ at most</td></tr>
+      <tr><th scope="row">Widest level</th><td>y __WIDEST__, __WIDESTN__ open columns</td></tr>
+      <tr><th scope="row">Half of the volume lies under</th><td>y __HALF__</td></tr>
+    </table></div>
+  </section>
+
+  <footer><p>A cavern here is underground air within three blocks of a connected set of core blocks, a core block being the centre of a 7 × 7 × 7 cube of underground air. Carvers, structures and features are not counted: this is what the world generator's noise and aquifers fix from the seed alone.</p></footer>
+</div>
+<script>
+(function () {
+  const DIM = { x: __NX__, y: __NY__, z: __NZ__ }, CELL = 4, YBASE = __YBASE__, DATA = "__VOLUME_B64__";
+  const copy = document.getElementById('copy'), tp = document.getElementById('tp');
+  copy.addEventListener('click', function () {
+    const text = tp.textContent, done = function () { copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy command'; }, 1600); };
+    const select = function () { const r = document.createRange(); r.selectNodeContents(tp); const s = getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = 'Selected: press copy'; };
+    try { navigator.clipboard.writeText(text).then(done, select); } catch (e) { select(); }
+  });
+  const viewer = document.getElementById('viewer'), canvas = document.getElementById('gl'), still = document.getElementById('still'), hint = document.getElementById('hint');
+  const gl = canvas.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
+  function fallback(why) { canvas.hidden = true; still.hidden = false; document.getElementById('north').hidden = true; hint.textContent = 'still picture: ' + why; viewer.style.cursor = 'default'; document.querySelectorAll('.controls input, .controls button').forEach(function (e) { e.disabled = true; }); }
+  if (!gl) { fallback('this browser has no WebGL 2'); return; }
+  // the volume: a bit per cell, order y, z, x
+  const raw = atob(DATA), cells = DIM.x * DIM.y * DIM.z, vol = new Uint8Array(cells);
+  for (let i = 0; i < cells; i++) if ((raw.charCodeAt(i >> 3) >> (7 - (i & 7))) & 1) vol[i] = 255;
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_3D, tex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, DIM.x, DIM.z, DIM.y, 0, gl.RED, gl.UNSIGNED_BYTE, vol);
+  for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_3D, p, gl.LINEAR);
+  for (const p of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) gl.texParameteri(gl.TEXTURE_3D, p, gl.CLAMP_TO_EDGE);
+  const VS = '#version 300 es\nin vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }';
+  const FS = `#version 300 es
+precision highp float; precision highp sampler3D;
+uniform sampler3D vol; uniform vec3 dims, size, eye, bg; uniform mat3 cam; uniform vec2 res; uniform float tanHalf, clipY, quality;
+out vec4 o;
+float occ(vec3 p) { vec3 c = p / size; if (c.y * dims.y > clipY || any(lessThan(c, vec3(0.0))) || any(greaterThan(c, vec3(1.0)))) return 0.0; return texture(vol, vec3(c.x, c.z, c.y)).r; }
+vec3 ramp(float h) { vec3 a = vec3(0.23, 0.12, 0.05), b = vec3(0.54, 0.29, 0.11), c = vec3(0.85, 0.54, 0.24), d = vec3(0.96, 0.85, 0.66), e = vec3(1.0, 0.98, 0.94);
+  h = clamp(h, 0.0, 1.0) * 4.0; return h < 1.0 ? mix(a, b, h) : h < 2.0 ? mix(b, c, h - 1.0) : h < 3.0 ? mix(c, d, h - 2.0) : mix(d, e, h - 3.0); }
+void main() {
+  vec2 uv = (gl_FragCoord.xy * 2.0 - res) / res.y; vec3 rd = normalize(cam * vec3(uv * tanHalf, -1.0));
+  vec3 inv = 1.0 / rd, a = -eye * inv, b = (size - eye) * inv, lo = min(a, b), hi = max(a, b);
+  float tn = max(max(lo.x, lo.y), lo.z), tf = min(min(hi.x, hi.y), hi.z);
+  o = vec4(bg, 1.0); if (tn > tf || tf < 0.0) return;
+  float stepLen = 0.75 / quality, t = max(tn, 0.0) + 0.02, prev = t; bool hit = false;
+  for (int i = 0; i < 2600; i++) { if (occ(eye + rd * t) > 0.5) { hit = true; break; } prev = t; t += stepLen; if (t > tf) break; }
+  if (!hit) return;
+  for (int i = 0; i < 5; i++) { float mid = 0.5 * (prev + t); if (occ(eye + rd * mid) > 0.5) t = mid; else prev = mid; }
+  vec3 p = eye + rd * t; float e = 1.2;
+  vec3 n = normalize(vec3(occ(p - vec3(e, 0, 0)) - occ(p + vec3(e, 0, 0)), (occ(p - vec3(0, e, 0)) - occ(p + vec3(0, e, 0))) * (size.y / dims.y), occ(p - vec3(0, 0, e)) - occ(p + vec3(0, 0, e))) + 1e-5);
+  float light = 0.42 + 0.58 * max(dot(n, normalize(vec3(-0.45, 0.8, 0.4))), 0.0), shade = 1.0 - 0.5 * occ(p + n * 3.0) - 0.25 * occ(p + n * 7.0);
+  vec3 col = ramp(p.y / size.y) * light * shade; float fog = clamp((t - tn) / (1.6 * length(size)), 0.0, 1.0);
+  o = vec4(mix(col, bg, fog * 0.35), 1.0);
+}`;
+  function shader(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+  let prog;
+  try { prog = gl.createProgram(); gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog)); }
+  catch (e) { fallback('the 3D view could not start here'); return; }
+  gl.useProgram(prog); const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = {}; for (const n of ['vol', 'dims', 'size', 'eye', 'bg', 'cam', 'res', 'tanHalf', 'clipY', 'quality']) U[n] = gl.getUniformLocation(prog, n);
+  const VIEWS = { oblique: [0.72, 0.62], top: [0.0, 1.5], side: [0.0, 0.22] };   // azimuth (0: seen from the south), elevation
+  const state = { az: VIEWS.oblique[0], el: VIEWS.oblique[1], dist: 0.95, ex: 2, clip: DIM.y, moving: false };
+  let pending = false, settle = 0;
+  function draw() {
+    pending = false; const scale = (state.moving ? 0.5 : 1) * Math.min(window.devicePixelRatio || 1, 1.5), w = Math.max(2, Math.round(viewer.clientWidth * scale)), h = Math.max(2, Math.round(viewer.clientHeight * scale));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    gl.viewport(0, 0, w, h); const size = [DIM.x, DIM.y * state.ex, DIM.z], reach = Math.hypot(size[0], size[2]) * state.dist, target = [size[0] / 2, size[1] * 0.35, size[2] / 2];
+    const ce = Math.cos(state.el), eye = [target[0] + reach * ce * Math.sin(state.az), target[1] + reach * Math.sin(state.el), target[2] + reach * ce * Math.cos(state.az)];
+    const f = norm(sub(target, eye)), up = Math.abs(f[1]) > 0.999 ? [0, 0, -1] : [0, 1, 0], r = norm(cross(f, up)), u = cross(r, f);
+    gl.uniform1i(U.vol, 0); gl.uniform3f(U.dims, DIM.x, DIM.y, DIM.z); gl.uniform3fv(U.size, size); gl.uniform3fv(U.eye, eye); gl.uniform3f(U.bg, 0.078, 0.067, 0.059);
+    gl.uniformMatrix3fv(U.cam, false, [r[0], r[1], r[2], u[0], u[1], u[2], -f[0], -f[1], -f[2]]); gl.uniform2f(U.res, w, h); gl.uniform1f(U.tanHalf, Math.tan(0.30)); gl.uniform1f(U.clipY, state.clip); gl.uniform1f(U.quality, state.moving ? 0.6 : 1.0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    document.getElementById('needle').setAttribute('transform', 'rotate(' + (state.az * 180 / Math.PI) + ')');   // north is -z: straight up when seen from the south
+  }
+  function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; } function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; } function norm(a) { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; }
+  function request(moving) { if (moving) { state.moving = true; clearTimeout(settle); settle = setTimeout(function () { state.moving = false; request(false); }, 180); } if (!pending) { pending = true; requestAnimationFrame(draw); } }
+  const pointers = new Map(); let pinch = 0;
+  viewer.addEventListener('pointerdown', function (e) { viewer.setPointerCapture(e.pointerId); pointers.set(e.pointerId, [e.clientX, e.clientY]); viewer.classList.add('dragging'); hint.hidden = true; });
+  viewer.addEventListener('pointermove', function (e) {
+    if (!pointers.has(e.pointerId)) return; const last = pointers.get(e.pointerId); pointers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pointers.size === 1) { state.az -= (e.clientX - last[0]) * 0.006; state.el = Math.min(1.5, Math.max(0.05, state.el + (e.clientY - last[1]) * 0.005)); }
+    else if (pointers.size === 2) { const pts = Array.from(pointers.values()), d = Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]); if (pinch) state.dist = Math.min(2.4, Math.max(0.12, state.dist * pinch / d)); pinch = d; }
+    request(true);
+  });
+  function release(e) { pointers.delete(e.pointerId); pinch = 0; if (!pointers.size) viewer.classList.remove('dragging'); }
+  viewer.addEventListener('pointerup', release); viewer.addEventListener('pointercancel', release);
+  viewer.addEventListener('wheel', function (e) { e.preventDefault(); state.dist = Math.min(2.4, Math.max(0.12, state.dist * Math.exp(e.deltaY * 0.0012))); hint.hidden = true; request(true); }, { passive: false });
+  const cut = document.getElementById('cut'), cutv = document.getElementById('cutv');
+  cut.addEventListener('input', function () { state.clip = (Number(cut.value) - YBASE) / CELL; cutv.textContent = 'y ' + cut.value; request(true); });
+  document.querySelectorAll('[data-ex]').forEach(function (b) { b.addEventListener('click', function () { state.ex = Number(b.dataset.ex); document.querySelectorAll('[data-ex]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); }); request(false); }); });
+  document.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { state.az = VIEWS[b.dataset.view][0]; state.el = VIEWS[b.dataset.view][1]; state.dist = 0.95; request(false); }); });
+  new ResizeObserver(function () { request(false); }).observe(viewer);
+  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); fallback('the 3D view was stopped by the browser'); });
+  request(false);
+})();
+</script>

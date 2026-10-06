@@ -1,0 +1,460 @@
+<title>Seed -5296147297896900941 Caverns</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a survey sheet. The map and the frontier chart on the left, the picked cavern's card on the right, the list underneath. */
+:root {
+  --bg: #f2f4f3; --surface: #ffffff; --ink: #12181b; --ink2: #465055; --muted: #6f7b80; --line: #dce1df; --line2: #edf0ef;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --ctx: #98a3a7; --sel: #12181b;
+  --air-lo: #cde2fb; --air-hi: #104281; --dd-lo: #f7d0de; --dd-hi: #8f1c4f;
+  --font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1315; --surface: #171b1e; --ink: #f1f4f3; --ink2: #bcc4c6; --muted: #8d979b; --line: #2b3236; --line2: #20262a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --ctx: #5f6a6f; --sel: #f1f4f3;
+  --air-lo: #143a66; --air-hi: #b7d3f6; --dd-lo: #5a1736; --dd-hi: #f4a8c5; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1315; --surface: #171b1e; --ink: #f1f4f3; --ink2: #bcc4c6; --muted: #8d979b; --line: #2b3236; --line2: #20262a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --ctx: #5f6a6f; --sel: #f1f4f3;
+  --air-lo: #143a66; --air-hi: #b7d3f6; --dd-lo: #5a1736; --dd-hi: #f4a8c5; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45 }
+.page { max-width: 1320px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 20px 48px; display: flex; flex-direction: column; gap: 18px }
+header h1 { font-size: clamp(1.35rem, 2.6vw, 1.9rem); font-weight: 780; font-stretch: 112%; letter-spacing: -0.01em; margin: 0; text-wrap: balance; line-height: 1.15 }
+header h1 .seed { font-family: var(--mono); font-weight: 600; font-size: 0.82em; letter-spacing: -0.02em; overflow-wrap: anywhere }
+header p { margin: 6px 0 0; color: var(--ink2); max-width: 70ch }
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0 }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; min-width: 0 }
+.panel > h2 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; color: var(--muted); margin: 0; padding: 11px 14px 0 }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 14px }
+.chip, .seg button, .tool { font: inherit; font-size: 0.86rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px 4px 8px; display: inline-flex; gap: 7px; align-items: center; cursor: pointer }
+.chip[aria-pressed="false"] { color: var(--muted); background: var(--line2) }
+.chip[aria-pressed="false"] svg { opacity: 0.3 }
+.chip svg { flex: none }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden }
+.seg button { border: 0; border-radius: 0; padding: 4px 12px }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface) }
+button:focus-visible, select:focus-visible, input:focus-visible, tr:focus-visible, canvas:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px }
+.mapwrap, .chartwrap { position: relative }
+#map { display: block; width: 100%; height: clamp(340px, 62vh, 640px); touch-action: none; cursor: grab; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line) }
+#map.dragging { cursor: grabbing }
+.mapbtns { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px }
+.tool { width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 1.1rem; line-height: 1; border-radius: 6px }
+.north { position: absolute; left: 12px; top: 10px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); pointer-events: none }
+.hint { padding: 8px 14px 10px; font-size: 0.8rem; color: var(--muted) }
+#chart { display: block; width: 100%; height: 300px; cursor: crosshair }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 0.8rem; padding: 6px 9px; border-radius: 5px; max-width: 250px; z-index: 5; line-height: 1.35 }
+.tip b { font-weight: 700 }
+.tip .tp { font-family: var(--mono); font-size: 0.74rem; opacity: 0.85 }
+.detail { padding: 4px 14px 16px; display: flex; flex-direction: column; gap: 14px }
+.detail .big { font-size: 1.75rem; font-weight: 780; font-stretch: 112%; line-height: 1.1; font-variant-numeric: tabular-nums }
+.detail .big small { font-size: 0.9rem; font-weight: 500; color: var(--ink2); font-stretch: 100% }
+.badges { display: flex; flex-wrap: wrap; gap: 6px }
+.badge { font-size: 0.8rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px 2px 7px; display: inline-flex; gap: 6px; align-items: center; color: var(--ink2) }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; display: inline-block }
+.tpbox { display: flex; gap: 8px; align-items: stretch }
+.tpbox code { flex: 1; min-width: 0; font-family: var(--mono); font-size: 0.92rem; background: var(--line2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: nowrap; user-select: all }
+.btn { font: inherit; font-size: 0.88rem; font-weight: 600; color: var(--surface); background: var(--ink); border: 1px solid var(--ink); border-radius: 6px; padding: 6px 13px; cursor: pointer; white-space: nowrap }
+.btn.ghost { color: var(--ink); background: transparent; border-color: var(--line); font-weight: 500 }
+dl.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; margin: 0; font-variant-numeric: tabular-nums }
+dl.facts dt { color: var(--muted); font-size: 0.86rem }
+dl.facts dd { margin: 0; text-align: right; font-size: 0.92rem }
+dl.facts dd .sub { color: var(--muted); font-size: 0.82rem }
+.share { height: 8px; border-radius: 4px; background: var(--air-hi); overflow: hidden; display: flex; justify-content: flex-end }
+.share i { display: block; background: var(--dd-hi); height: 100%; border-left: 2px solid var(--surface) }
+.cavmap { display: flex; flex-direction: column; gap: 6px }
+.cavmap canvas { display: block; width: 100%; border: 1px solid var(--line); border-radius: 4px; background: var(--surface) }
+.cavmap .cap { font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center }
+.sw { width: 22px; height: 9px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 5px }
+.sw.air { background: linear-gradient(90deg, var(--air-lo), var(--air-hi)) }
+.sw.dd { background: linear-gradient(90deg, var(--dd-lo), var(--dd-hi)) }
+.note { font-size: 0.84rem; color: var(--ink2); margin: 0 }
+.tablebar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 14px }
+.tablebar label { font-size: 0.84rem; color: var(--ink2); display: inline-flex; gap: 6px; align-items: center }
+select, input[type="search"] { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; max-width: 100% }
+.count { font-size: 0.84rem; color: var(--muted); margin-left: auto }
+.scroll { overflow-x: auto; border-top: 1px solid var(--line) }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.88rem }
+th, td { padding: 6px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line2) }
+th { position: sticky; top: 0; background: var(--surface); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 700; padding: 0 }
+th button { font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; background: none; border: 0; padding: 8px 12px; cursor: pointer; width: 100%; text-align: inherit }
+th[aria-sort] button { color: var(--ink) }
+td.tp, th.tp { text-align: left; font-family: var(--mono); font-size: 0.8rem }
+th.tp { font-family: var(--font); font-size: 0.72rem }
+td.fr, th.fr { text-align: left }
+td.fr .dot { margin-right: 3px }
+tbody tr { cursor: pointer }
+tbody tr:hover { background: var(--line2) }
+tbody tr.on { background: var(--line2); box-shadow: inset 3px 0 0 var(--ink) }
+.more { padding: 12px 14px; display: flex; justify-content: center }
+footer { color: var(--muted); font-size: 0.82rem; max-width: 86ch }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr) } #map { height: min(92vw, 460px) } #chart { height: 260px } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important } }
+</style>
+
+<div class="page">
+  <header>
+    <h1>Caverns of seed <span class="seed">-5296147297896900941</span></h1>
+    <p id="lede">Large biomes, Minecraft 26.3.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-label="Map of the caverns">
+        <h2>Where they are</h2>
+        <div class="bar">
+          <div class="seg" role="group" aria-label="Map scale">
+            <button type="button" id="modeLog" aria-pressed="true" title="Distance from (0, 0) on a log scale: every ring is ten times farther out">Log distance</button>
+            <button type="button" id="modeLin" aria-pressed="false" title="A true-scale map: zoom in to see the caverns' shapes">True scale</button>
+          </div>
+          <button type="button" class="chip" id="chip1" aria-pressed="true"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="4.2" fill="var(--s1)"/></svg>Largest in total</button>
+          <button type="button" class="chip" id="chip2" aria-pressed="true"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="2" fill="var(--ctx)"/><circle cx="11" cy="11" r="6.6" fill="none" stroke="var(--s2)" stroke-width="2.2"/></svg>Largest outside the deep dark</button>
+          <button type="button" class="chip" id="chip4" aria-pressed="true"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="2" fill="var(--ctx)"/><circle cx="11" cy="11" r="9.6" fill="none" stroke="var(--s3)" stroke-width="2.2" stroke-dasharray="4 2.4"/></svg>Largest with no deep dark</button>
+          <button type="button" class="chip" id="chip0" aria-pressed="true"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3" fill="var(--ctx)"/></svg>Other measured caverns</button>
+        </div>
+        <div class="mapwrap">
+          <canvas id="map" tabindex="0" aria-label="Map of the measured caverns. The list below holds the same caverns."></canvas>
+          <div class="north">N &uarr;</div>
+          <div class="mapbtns">
+            <button type="button" class="tool" id="zoomIn" aria-label="Zoom in">+</button>
+            <button type="button" class="tool" id="zoomOut" aria-label="Zoom out">&minus;</button>
+            <button type="button" class="tool" id="zoomFit" aria-label="Show the whole world" title="Show the whole world"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          </div>
+          <div class="tip" id="mapTip" hidden></div>
+        </div>
+        <p class="note hint" id="mapHint"></p>
+      </section>
+
+      <section class="panel" aria-label="The largest cavern within a distance of the origin">
+        <h2>The largest cavern within a distance of (0, 0)</h2>
+        <p class="note" style="padding: 6px 14px 0">A marked cavern is larger, by that measure, than every measured cavern closer to the origin. A line holds its value until the next one.</p>
+        <div class="chartwrap">
+          <canvas id="chart" tabindex="0" aria-label="Volume against distance from the origin, with the three frontiers. The list below holds the same caverns."></canvas>
+          <div class="tip" id="chartTip" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" id="detailPanel" aria-live="polite" aria-label="The picked cavern">
+        <h2>Picked cavern</h2>
+        <div class="detail" id="detail"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="List of the measured caverns">
+    <h2>All measured caverns</h2>
+    <div class="tablebar">
+      <label for="filter">Show <select id="filter"></select></label>
+      <label for="search">Find <input type="search" id="search" placeholder="a coordinate, e.g. -12087" autocomplete="off"></label>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="more"><button type="button" class="btn ghost" id="more">Show more</button></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script type="application/json" id="data">/*DATA*/</script>
+<script>
+(function () {
+'use strict';
+const D = JSON.parse(document.getElementById('data').textContent);
+const C = D.cav.map((a, i) => ({ i, x: a[0], y: a[1], z: a[2], vol: a[3], dd: a[4], zoom: a[5], box: a.slice(6, 12), flags: a[12], game: a[13], differ: a[14], own: a[15],
+  map: a[16], dist: Math.hypot(a[0], a[2]), free: a[3] - a[4] }));
+const MAPS = D.maps, VMAX = Math.max.apply(null, C.map(c => c.vol)), WB = 29999984, R0 = 100;
+const SERIES = [
+  { bit: 1, name: 'Largest in total', short: 'total', val: c => c.vol, token: 's1' },
+  { bit: 2, name: 'Largest outside the deep dark', short: 'outside the deep dark', val: c => c.free, token: 's2' },
+  { bit: 4, name: 'Largest with no deep dark', short: 'no deep dark', val: c => c.vol, token: 's3' }];
+const $ = id => document.getElementById(id);
+const int = v => Math.round(v).toLocaleString('en-US');
+const vol = v => v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : Math.round(v / 1e3) + 'K';
+const far = d => d >= 1e6 ? (d / 1e6).toFixed(2) + 'M' : d >= 1e4 ? (d / 1e3).toFixed(1) + 'K' : int(d);
+const coord = v => { const a = Math.abs(v); return a >= 1e6 ? +(v / 1e6).toFixed(2) + 'M' : a >= 1e3 ? +(v / 1e3).toFixed(2) + 'K' : String(Math.round(v)); };
+const tp = c => '/tp ' + c.x + ' ' + c.y + ' ' + c.z;
+const bearing = c => ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][Math.round(((Math.atan2(c.x, -c.z) * 180 / Math.PI) + 360) % 360 / 45) % 8];
+
+let selected = C.reduce((a, b) => b.vol > a.vol ? b : a), enabled = 7, others = true, T = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  ['bg', 'surface', 'ink', 'ink2', 'muted', 'line', 'line2', 's1', 's2', 's3', 'ctx', 'sel', 'air-lo', 'air-hi', 'dd-lo', 'dd-hi'].forEach(n => { T[n] = cs.getPropertyValue('--' + n).trim(); });
+  T.font = cs.getPropertyValue('--font').trim(); T.key = T.surface + T['air-hi'];
+}
+function fit(canvas) {
+  const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+  const ctx = canvas.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
+}
+const disc = (ctx, x, y, r) => { ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); };
+function text(ctx, s, x, y, colour, size, align, weight) { ctx.font = (weight || 500) + ' ' + (size || 11) + 'px ' + T.font; ctx.textAlign = align || 'left'; ctx.fillStyle = colour; ctx.fillText(s, x, y); }
+function haloText(ctx, s, x, y, colour, size, align, weight) { ctx.font = (weight || 600) + ' ' + (size || 12) + 'px ' + T.font; ctx.textAlign = align || 'left'; ctx.lineWidth = 3.5; ctx.strokeStyle = T.surface; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y); ctx.fillStyle = colour; ctx.fillText(s, x, y); }
+
+/* ---- the caverns' own maps: two PNGs each, red = cells with air, green = the deep dark ones ---- */
+function hex(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+function decode(m, done) {
+  if (m.ready) { done(); return; }
+  if (m.waiting) { m.waiting.push(done); return; }
+  m.waiting = [done]; let left = 2;
+  ['top', 'side'].forEach(which => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      m[which + 'Px'] = g.getImageData(0, 0, img.width, img.height);
+      if (--left === 0) { m.ready = true; const w = m.waiting; m.waiting = null; w.forEach(f => f()); }
+    };
+    img.src = m[which];
+  });
+}
+function painted(m, which) {   // the view in the theme's colours: air outside the deep dark in one ramp, columns with deep dark air in the other
+  const slot = which + 'Canvas';
+  if (m[slot] && m[slot].key === T.key) return m[slot];
+  const src = m[which + 'Px'], out = document.createElement('canvas'); out.width = src.width; out.height = src.height;
+  const g = out.getContext('2d'), img = g.createImageData(src.width, src.height), a0 = hex(T['air-lo']), a1 = hex(T['air-hi']), d0 = hex(T['dd-lo']), d1 = hex(T['dd-hi']), max = which === 'top' ? m.tmax : m.smax;
+  for (let p = 0; p < src.data.length; p += 4) {
+    const t = src.data[p], d = src.data[p + 1];
+    if (!t) continue;
+    const f = Math.pow(Math.min(1, t / max), 0.6), lo = d ? d0 : a0, hi = d ? d1 : a1;
+    img.data[p] = lo[0] + (hi[0] - lo[0]) * f; img.data[p + 1] = lo[1] + (hi[1] - lo[1]) * f; img.data[p + 2] = lo[2] + (hi[2] - lo[2]) * f; img.data[p + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); out.key = T.key; m[slot] = out; return out;
+}
+
+/* ---- the map ---- */
+const mapEl = $('map'), view = { mode: 'log', log: null, lin: null }; let mapSize = { w: 1, h: 1 }, screen = [], hover = null;
+function proj(x, z) { if (view.mode === 'lin') return [x, z]; const r = Math.hypot(x, z); if (r <= R0) return [0, 0]; const rr = Math.log10(r / R0); return [x / r * rr, z / r * rr]; }
+function whole(mode, w, h) { return { k: Math.min(w, h) / 2 / (mode === 'log' ? Math.log10(WB * Math.SQRT2 / R0) + 0.14 : WB * 1.07), cx: 0, cy: 0, whole: true }; }
+function toScreen(u, v) { const s = view[view.mode]; return [(u - s.cx) * s.k + mapSize.w / 2, (v - s.cy) * s.k + mapSize.h / 2]; }
+function glyph(ctx, x, y, flags, c) {
+  const outer = flags & 4 ? 11.7 : flags & 2 ? 8.3 : 5;
+  ctx.fillStyle = T.surface; disc(ctx, x, y, outer + 1.6); ctx.fill();
+  ctx.lineWidth = 2.2;
+  if (flags & 4) { ctx.strokeStyle = T.s3; ctx.setLineDash([4, 2.4]); disc(ctx, x, y, 10.6); ctx.stroke(); ctx.setLineDash([]); }
+  if (flags & 2) { ctx.strokeStyle = T.s2; disc(ctx, x, y, 7.2); ctx.stroke(); }
+  if (flags & 1) { ctx.fillStyle = T.s1; disc(ctx, x, y, 4.2); ctx.fill(); } else { ctx.fillStyle = T.ctx; disc(ctx, x, y, 2.2); ctx.fill(); }
+  return outer;
+}
+function drawMap() {
+  const f = fit(mapEl), ctx = f.ctx, w = f.w, h = f.h; mapSize = { w, h };
+  ['log', 'lin'].forEach(mode => { if (!view[mode] || view[mode].whole) view[mode] = whole(mode, w, h); });
+  const s = view[view.mode], lin = view.mode === 'lin';
+  ctx.fillStyle = T.surface; ctx.fillRect(0, 0, w, h);
+  const o = toScreen(0, 0); ctx.lineWidth = 1;
+  if (!lin) {
+    ctx.strokeStyle = T.line2; ctx.beginPath(); ctx.moveTo(o[0], 0); ctx.lineTo(o[0], h); ctx.moveTo(0, o[1]); ctx.lineTo(w, o[1]); ctx.stroke();
+    [1e3, 1e4, 1e5, 1e6, 1e7].forEach(R => { const r = Math.log10(R / R0) * s.k; ctx.strokeStyle = T.line; ctx.lineWidth = 1; disc(ctx, o[0], o[1], r); ctx.stroke(); });
+    ctx.strokeStyle = T.muted; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
+    for (let side = 0; side < 4; side++) for (let i = 0; i <= 48; i++) { const t = (i / 48 * 2 - 1) * WB, p = proj.apply(null, side === 0 ? [t, -WB] : side === 1 ? [WB, t] : side === 2 ? [-t, WB] : [-WB, -t]), q = toScreen(p[0], p[1]); if (side === 0 && i === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
+    ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+  } else {
+    const raw = 90 / s.k, pow = Math.pow(10, Math.floor(Math.log10(raw))), step = raw / pow <= 2 ? 2 * pow : raw / pow <= 5 ? 5 * pow : 10 * pow;
+    const grid = v => step >= 1e6 ? coord(v) : step >= 1e4 && Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : int(v);
+    const x0 = s.cx - w / 2 / s.k, x1 = s.cx + w / 2 / s.k, z0 = s.cy - h / 2 / s.k, z1 = s.cy + h / 2 / s.k;
+    for (let x = Math.ceil(x0 / step) * step; x <= x1; x += step) { const q = toScreen(x, 0)[0]; ctx.strokeStyle = Math.abs(x) < step / 2 ? T.line : T.line2; ctx.beginPath(); ctx.moveTo(q, 0); ctx.lineTo(q, h); ctx.stroke(); if (q > 40 && q < w - 60) text(ctx, 'x ' + grid(x), q + 4, h - 7, T.muted, 10.5); }
+    for (let z = Math.ceil(z0 / step) * step; z <= z1; z += step) { const q = toScreen(0, z)[1]; ctx.strokeStyle = Math.abs(z) < step / 2 ? T.line : T.line2; ctx.beginPath(); ctx.moveTo(0, q); ctx.lineTo(w, q); ctx.stroke(); if (q > 34 && q < h - 22) text(ctx, 'z ' + grid(z), 8, q - 4, T.muted, 10.5); }
+    const a = toScreen(-WB, -WB), b = toScreen(WB, WB); ctx.strokeStyle = T.muted; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.setLineDash([]);
+    // the caverns at true scale: their extent, and their own map where there is one
+    ctx.imageSmoothingEnabled = false;
+    C.forEach(c => {
+      const bw = (c.box[1] - c.box[0]) * s.k; if (bw < 14) return;
+      const p = toScreen(c.box[0], c.box[4]), bh = (c.box[5] - c.box[4]) * s.k;
+      if (p[0] > w || p[1] > h || p[0] + bw < 0 || p[1] + bh < 0 || !visible(c)) return;
+      const m = c.map >= 0 ? MAPS[c.map] : null;
+      if (m && bw >= 26) { if (!m.ready) { decode(m, drawMap); } else { const q = toScreen(m.x0, m.z0); ctx.drawImage(painted(m, 'top'), q[0], q[1], m.w * m.res * s.k, m.h * m.res * s.k); } }
+      else { ctx.strokeStyle = T.ctx; ctx.lineWidth = 1; ctx.strokeRect(p[0], p[1], bw, bh); }
+    });
+    const bar = step, px = bar * s.k; ctx.strokeStyle = T.ink2; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(w - 16 - px, h - 28); ctx.lineTo(w - 16, h - 28); ctx.stroke(); haloText(ctx, (bar >= 1e3 ? coord(bar) : int(bar)) + ' blocks', w - 16, h - 34, T.ink2, 11, 'right', 600);
+  }
+  screen = C.map(c => { const p = proj(c.x, c.z), q = toScreen(p[0], p[1]); return q[0] < -20 || q[1] < -20 || q[0] > w + 20 || q[1] > h + 20 || !visible(c) ? null : q; });
+  ctx.globalAlpha = 0.6; ctx.fillStyle = T.ctx;
+  C.forEach((c, i) => { const q = screen[i]; if (!q || (c.flags & enabled)) return; disc(ctx, q[0], q[1], 1.3 + 3.6 * Math.sqrt(c.vol / VMAX)); ctx.fill(); });
+  ctx.globalAlpha = 1;
+  if (!lin) {   // the rings' distances, over the grey dots
+    [1e3, 1e4, 1e5, 1e6, 1e7].forEach(R => { const r = Math.log10(R / R0) * s.k; haloText(ctx, coord(R), o[0] + r * 0.7071 + 4, o[1] - r * 0.7071 - 3, T.ink2, 11, 'left', 600); });
+    const edge = toScreen(Math.log10(WB / R0), 0); haloText(ctx, 'world border', edge[0] - 6, edge[1] - 6, T.ink2, 11, 'right', 600);
+  }
+  C.forEach((c, i) => { const q = screen[i]; if (q && (c.flags & enabled)) glyph(ctx, q[0], q[1], c.flags & enabled, c); });
+  [[hover, 1.2], [selected, 2]].forEach(pair => {
+    const c = pair[0]; if (!c || !screen[c.i]) return; const q = screen[c.i], fl = c.flags & enabled, r = (fl & 4 ? 11.7 : fl & 2 ? 8.3 : fl ? 5 : 3 + 3.6 * Math.sqrt(c.vol / VMAX)) + 4;
+    ctx.strokeStyle = T.sel; ctx.lineWidth = pair[1]; disc(ctx, q[0], q[1], r); ctx.stroke();
+    if (c === selected) haloText(ctx, vol(c.vol), q[0], q[1] - r - 5, T.ink, 12, 'center', 700);
+  });
+  $('mapHint').textContent = lin ? 'Drag to move, scroll or pinch to zoom. Zoomed in, the caverns show their shape.' : 'Each ring is ten times farther from (0, 0).';
+}
+function visible(c) { return (c.flags & enabled) || others; }
+function hit(points, x, y) {   // the nearest marked cavern within reach, else the nearest other one
+  let best = null, bd = 14 * 14, ctxBest = null, cd = 9 * 9;
+  points.forEach(p => { if (!p) return; const d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y); if (p.front) { if (d < bd) { bd = d; best = p; } } else if (d < cd) { cd = d; ctxBest = p; } });
+  return best || ctxBest;
+}
+function tipHtml(c, extra) { return '<b>' + vol(c.vol) + '</b> blocks, ' + far(c.dist) + ' from (0, 0)' + (extra ? '<br>' + extra : '') + (c.dd ? '<br>' + vol(c.free) + ' outside the deep dark' : '<br>no deep dark') + '<br><span class="tp">' + tp(c) + '</span>'; }
+function showTip(el, wrap, x, y, html) { el.innerHTML = html; el.hidden = false; const w = wrap.clientWidth, tw = el.offsetWidth, th = el.offsetHeight; el.style.left = Math.max(4, Math.min(w - tw - 4, x + 14)) + 'px'; el.style.top = Math.max(4, y - th - 12 < 4 ? y + 16 : y - th - 12) + 'px'; }
+function zoomAt(px, py, factor) {
+  const s = view[view.mode], base = whole(view.mode, mapSize.w, mapSize.h).k, k = Math.max(base * 0.7, Math.min(view.mode === 'log' ? base * 80 : 3, s.k * factor));
+  const u = (px - mapSize.w / 2) / s.k + s.cx, v = (py - mapSize.h / 2) / s.k + s.cy; s.whole = false; s.k = k; s.cx = u - (px - mapSize.w / 2) / k; s.cy = v - (py - mapSize.h / 2) / k; drawMap();
+}
+function setMode(mode) { view.mode = mode; $('modeLog').setAttribute('aria-pressed', mode === 'log'); $('modeLin').setAttribute('aria-pressed', mode === 'lin'); hover = null; drawMap(); }
+function focusOn(c) {   // the cavern in the middle of the map; at true scale close enough to see its shape
+  const s = view[view.mode]; s.whole = false;
+  if (view.mode === 'lin') { const size = Math.max(c.box[1] - c.box[0], c.box[5] - c.box[4], 160); s.k = Math.min(3, Math.min(mapSize.w, mapSize.h) / (size * 1.7)); s.cx = (c.box[0] + c.box[1]) / 2; s.cy = (c.box[4] + c.box[5]) / 2; }
+  else { const p = proj(c.x, c.z); s.cx = p[0]; s.cy = p[1]; s.k = Math.max(s.k, whole('log', mapSize.w, mapSize.h).k * 2.5); }
+  drawMap();
+}
+(function pointer() {
+  const down = new Map(); let moved = 0, pinch = 0;
+  const at = e => { const r = mapEl.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const points = () => screen.map((q, i) => q ? { x: q[0], y: q[1], c: C[i], front: !!(C[i].flags & enabled) } : null);
+  mapEl.addEventListener('pointerdown', e => { try { mapEl.setPointerCapture(e.pointerId); } catch (error) { /* a pointer that cannot be captured still drags inside the map */ } down.set(e.pointerId, at(e)); moved = 0; if (down.size === 2) { const p = Array.from(down.values()); pinch = Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]); } mapEl.classList.add('dragging'); $('mapTip').hidden = true; });
+  mapEl.addEventListener('pointermove', e => {
+    const p = at(e);
+    if (!down.has(e.pointerId)) { const h = hit(points(), p[0], p[1]), c = h ? h.c : null; if (c !== hover) { hover = c; drawMap(); } if (c) showTip($('mapTip'), mapEl.parentNode, p[0], p[1], tipHtml(c)); else $('mapTip').hidden = true; return; }
+    const before = down.get(e.pointerId); down.set(e.pointerId, p);
+    if (down.size === 1) { const s = view[view.mode]; s.whole = false; s.cx -= (p[0] - before[0]) / s.k; s.cy -= (p[1] - before[1]) / s.k; moved += Math.abs(p[0] - before[0]) + Math.abs(p[1] - before[1]); drawMap(); }
+    else if (down.size === 2) { const q = Array.from(down.values()), d = Math.hypot(q[0][0] - q[1][0], q[0][1] - q[1][1]); if (pinch > 0 && d > 0) zoomAt((q[0][0] + q[1][0]) / 2, (q[0][1] + q[1][1]) / 2, d / pinch); pinch = d; moved += 10; }
+  });
+  const up = e => { if (!down.has(e.pointerId)) return; const p = at(e); down.delete(e.pointerId); if (!down.size) mapEl.classList.remove('dragging'); if (moved < 6 && e.type === 'pointerup') { const h = hit(points(), p[0], p[1]); if (h) select(h.c); } };
+  mapEl.addEventListener('pointerup', up); mapEl.addEventListener('pointercancel', up);
+  mapEl.addEventListener('pointerleave', () => { if (!down.size) { $('mapTip').hidden = true; if (hover) { hover = null; drawMap(); } } });
+  mapEl.addEventListener('wheel', e => { e.preventDefault(); const p = at(e); zoomAt(p[0], p[1], Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0016))); }, { passive: false });
+  mapEl.addEventListener('keydown', e => { const s = view[view.mode], step = 60 / s.k; if (e.key === '+' || e.key === '=') zoomAt(mapSize.w / 2, mapSize.h / 2, 1.5); else if (e.key === '-') zoomAt(mapSize.w / 2, mapSize.h / 2, 1 / 1.5); else if (e.key === 'ArrowLeft') { s.whole = false; s.cx -= step; } else if (e.key === 'ArrowRight') { s.whole = false; s.cx += step; } else if (e.key === 'ArrowUp') { s.whole = false; s.cy -= step; } else if (e.key === 'ArrowDown') { s.whole = false; s.cy += step; } else return; e.preventDefault(); drawMap(); });
+  $('zoomIn').onclick = () => zoomAt(mapSize.w / 2, mapSize.h / 2, 1.7);
+  $('zoomOut').onclick = () => zoomAt(mapSize.w / 2, mapSize.h / 2, 1 / 1.7);
+  $('zoomFit').onclick = () => { view[view.mode] = whole(view.mode, mapSize.w, mapSize.h); drawMap(); };
+  $('modeLog').onclick = () => setMode('log'); $('modeLin').onclick = () => setMode('lin');
+  [[1, 'chip1'], [2, 'chip2'], [4, 'chip4']].forEach(pair => { $(pair[1]).onclick = () => { enabled ^= pair[0]; $(pair[1]).setAttribute('aria-pressed', !!(enabled & pair[0])); drawMap(); drawChart(); }; });
+  $('chip0').onclick = () => { others = !others; $('chip0').setAttribute('aria-pressed', others); drawMap(); drawChart(); };
+})();
+
+/* ---- the frontier chart ---- */
+const chartEl = $('chart'); let chartPoints = [];
+function drawChart() {
+  const f = fit(chartEl), ctx = f.ctx, w = f.w, h = f.h, L = 46, R = 16, Tp = 14, B = 34, lx0 = Math.log10(300), lx1 = Math.log10(4.6e7), ymax = Math.ceil(VMAX / 2e6) * 2e6;
+  const xs = d => L + (Math.log10(d) - lx0) / (lx1 - lx0) * (w - L - R), ys = v => h - B - v / ymax * (h - Tp - B);
+  ctx.fillStyle = T.surface; ctx.fillRect(0, 0, w, h); ctx.lineWidth = 1;
+  for (let v = 0; v <= ymax; v += 2e6) { ctx.strokeStyle = v ? T.line2 : T.line; ctx.beginPath(); ctx.moveTo(L, ys(v)); ctx.lineTo(w - R, ys(v)); ctx.stroke(); text(ctx, v ? v / 1e6 + 'M' : '0', L - 7, ys(v) + 4, T.muted, 11, 'right'); }
+  [1e3, 1e4, 1e5, 1e6, 1e7].forEach(d => { ctx.strokeStyle = T.line2; ctx.beginPath(); ctx.moveTo(xs(d), Tp); ctx.lineTo(xs(d), h - B); ctx.stroke(); text(ctx, coord(d), xs(d), h - B + 15, T.muted, 11, 'center'); });
+  text(ctx, 'blocks from (0, 0)', w - R, h - 5, T.muted, 11, 'right'); text(ctx, 'volume, blocks', L + 6, Tp + 12, T.muted, 11, 'left');
+  ctx.strokeStyle = T.muted; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(xs(WB), Tp); ctx.lineTo(xs(WB), h - B); ctx.stroke(); ctx.setLineDash([]);
+  ctx.save(); ctx.translate(xs(WB) - 4, h - B - 6); ctx.rotate(-Math.PI / 2); text(ctx, 'world border', 0, 0, T.muted, 10.5, 'left'); ctx.restore();
+  chartPoints = [];
+  if (others) { ctx.globalAlpha = 0.4; ctx.fillStyle = T.ctx; C.forEach(c => { if (c.flags & enabled) return; const x = xs(c.dist), y = ys(c.vol); disc(ctx, x, y, 1.6); ctx.fill(); chartPoints.push({ x, y, c, front: false }); }); ctx.globalAlpha = 1; }
+  SERIES.forEach((s, n) => {
+    if (!(enabled & s.bit)) return;
+    const pts = C.filter(c => c.flags & s.bit).sort((a, b) => a.dist - b.dist), dy = n * 2.6;
+    ctx.strokeStyle = T[s.token]; ctx.lineWidth = 2; ctx.lineJoin = 'round'; if (n === 2) ctx.setLineDash([6, 3]); ctx.beginPath();
+    pts.forEach((c, i) => { const x = xs(c.dist), y = ys(s.val(c)) + dy; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); const nx = i + 1 < pts.length ? xs(pts[i + 1].dist) : w - R; ctx.lineTo(nx, y); });
+    ctx.stroke(); ctx.setLineDash([]);
+    pts.forEach(c => { const x = xs(c.dist), y = ys(s.val(c)) + dy; ctx.fillStyle = T.surface; disc(ctx, x, y, 5.6); ctx.fill(); ctx.fillStyle = T[s.token]; disc(ctx, x, y, 3.8); ctx.fill(); chartPoints.push({ x, y, c, front: true, s }); });
+    const last = pts[pts.length - 1]; if (last) haloText(ctx, vol(s.val(last)), w - R, ys(s.val(last)) + dy + (n ? 15 : -8), T.ink2, 11, 'right', 600);
+  });
+  if (selected && visible(selected)) { const x = xs(selected.dist); ctx.strokeStyle = T.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, Tp); ctx.lineTo(x, h - B); ctx.stroke(); ctx.strokeStyle = T.sel; ctx.lineWidth = 2; disc(ctx, x, ys(selected.vol), 8.5); ctx.stroke(); }
+}
+chartEl.addEventListener('pointermove', e => { const r = chartEl.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, p = hit(chartPoints, x, y); if (p) showTip($('chartTip'), chartEl.parentNode, x, y, tipHtml(p.c, p.s ? p.s.name : '')); else $('chartTip').hidden = true; });
+chartEl.addEventListener('pointerleave', () => { $('chartTip').hidden = true; });
+chartEl.addEventListener('click', e => { const r = chartEl.getBoundingClientRect(), p = hit(chartPoints, e.clientX - r.left, e.clientY - r.top); if (p) select(p.c); });
+
+/* ---- the picked cavern ---- */
+function drawCavern() {
+  const c = selected, m = c.map >= 0 ? MAPS[c.map] : null, top = $('cavTop'), side = $('cavSide');
+  if (!m || !top) return;
+  if (!m.ready) { decode(m, () => { if (selected === c) drawCavern(); }); return; }
+  const wide = top.parentNode.clientWidth, blocks = m.w * m.res, s = wide / blocks;   // CSS pixels a block
+  top.style.height = Math.round(m.h * m.res * s) + 'px'; side.style.height = Math.max(40, Math.round(m.sh * 4 * s)) + 'px';
+  let f = fit(top), ctx = f.ctx; ctx.fillStyle = T.surface; ctx.fillRect(0, 0, f.w, f.h); ctx.imageSmoothingEnabled = false; ctx.drawImage(painted(m, 'top'), 0, 0, f.w, f.h);
+  const px = (c.x - m.x0) * s, pz = (c.z - m.z0) * s;   // the /tp point
+  ctx.strokeStyle = T.surface; ctx.lineWidth = 4; disc(ctx, px, pz, 6); ctx.stroke(); ctx.strokeStyle = T.sel; ctx.lineWidth = 1.8; disc(ctx, px, pz, 6); ctx.stroke(); ctx.beginPath(); ctx.moveTo(px - 11, pz); ctx.lineTo(px - 3, pz); ctx.moveTo(px + 3, pz); ctx.lineTo(px + 11, pz); ctx.moveTo(px, pz - 11); ctx.lineTo(px, pz - 3); ctx.moveTo(px, pz + 3); ctx.lineTo(px, pz + 11); ctx.stroke();
+  const want = blocks / 4, pow = Math.pow(10, Math.floor(Math.log10(want))), bar = want / pow >= 5 ? 5 * pow : want / pow >= 2 ? 2 * pow : pow;
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(10, f.h - 10); ctx.lineTo(10 + bar * s, f.h - 10); ctx.stroke(); haloText(ctx, bar + ' blocks', 10, f.h - 16, T.ink, 11, 'left', 600);
+  haloText(ctx, 'N', f.w - 16, 16, T.ink2, 11, 'center', 700); ctx.strokeStyle = T.ink2; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(f.w - 16, 34); ctx.lineTo(f.w - 16, 20); ctx.moveTo(f.w - 20, 25); ctx.lineTo(f.w - 16, 20); ctx.lineTo(f.w - 12, 25); ctx.stroke();
+  f = fit(side); ctx = f.ctx; ctx.fillStyle = T.surface; ctx.fillRect(0, 0, f.w, f.h); ctx.imageSmoothingEnabled = false; ctx.drawImage(painted(m, 'side'), 0, 0, f.w, f.h);
+  const yOf = y => (m.y1 + 1 - y) / (m.sh * 4) * f.h;
+  if (m.y1 > 0 && m.y0 < 0) { ctx.strokeStyle = T.muted; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(0, yOf(0)); ctx.lineTo(f.w, yOf(0)); ctx.stroke(); ctx.setLineDash([]); haloText(ctx, 'y 0', f.w - 6, yOf(0) - 4, T.muted, 10.5, 'right', 500); }
+  haloText(ctx, 'y ' + m.y1, 6, 13, T.ink2, 10.5, 'left', 600); haloText(ctx, 'y ' + m.y0, 6, f.h - 5, T.ink2, 10.5, 'left', 600);
+  const py = yOf(c.y + 0.5); ctx.strokeStyle = T.surface; ctx.lineWidth = 4; disc(ctx, px, py, 5); ctx.stroke(); ctx.strokeStyle = T.sel; ctx.lineWidth = 1.8; disc(ctx, px, py, 5); ctx.stroke();
+}
+function renderDetail() {
+  const c = selected, m = c.map >= 0 ? MAPS[c.map] : null, share = c.dd / c.vol, sx = c.box[1] - c.box[0] + 1, sy = c.box[3] - c.box[2] + 1, sz = c.box[5] - c.box[4] + 1;
+  const badges = SERIES.filter(s => c.flags & s.bit).map(s => '<span class="badge"><span class="dot" style="background:var(--' + s.token + ')"></span>' + s.name + ' within ' + far(c.dist) + '</span>').join('');
+  let check;
+  if (c.game) check = 'Volume confirmed block for block by the game code.' + (c.differ === 0 ? ' Every biome cell matches the game too.' : c.differ > 0 ? ' Biomes: ' + int(c.differ) + ' of ' + int(c.own) + ' cells differ from the game (ties at the top of the deep dark), about ' + int(c.differ * 64) + ' blocks at most.' : '');
+  else check = 'Measured by the native measurer only. It matched the game code on all 54 caverns compared, this one was not among them.';
+  $('detail').innerHTML =
+    '<div><div class="big">' + int(c.vol) + ' <small>blocks of air</small></div><div class="note">' + far(c.dist) + ' blocks ' + bearing(c) + ' of (0, 0)</div></div>' +
+    (badges ? '<div class="badges">' + badges + '</div>' : '') +
+    '<div class="tpbox"><code id="tpText">' + tp(c) + '</code><button type="button" class="btn" id="copy">Copy</button></div>' +
+    '<dl class="facts">' +
+      '<dt>Outside the deep dark</dt><dd>' + int(c.free) + '</dd>' +
+      '<dt>In the deep dark</dt><dd>' + (c.dd ? int(c.dd) + ' <span class="sub">(' + (share * 100).toFixed(1) + '%)</span>' : 'none') + '</dd>' +
+      '<dt></dt><dd><div class="share" title="Share of the air in the deep dark"><i style="width:' + (share * 100).toFixed(1) + '%"></i></div></dd>' +
+      '<dt>Extent</dt><dd>' + int(sx) + ' &times; ' + int(sz) + ' blocks, ' + int(sy) + ' tall</dd>' +
+      '<dt>x</dt><dd>' + c.box[0] + ' to ' + c.box[1] + '</dd><dt>y</dt><dd>' + c.box[2] + ' to ' + c.box[3] + '</dd><dt>z</dt><dd>' + c.box[4] + ' to ' + c.box[5] + '</dd>' +
+    '</dl>' +
+    '<p class="note">' + check + '</p>' +
+    (m ? '<div class="cavmap"><div class="cap"><b>From above</b><span>north up, ' + m.res + ' blocks a pixel, the ring is the /tp point</span></div><canvas id="cavTop"></canvas>' +
+         '<div class="cap"><b>From the south</b><span>same width, heights to scale</span></div><canvas id="cavSide"></canvas>' +
+         '<div class="cap"><span><span class="sw air"></span>air outside the deep dark</span><span><span class="sw dd"></span>air in the deep dark (from above: columns that have any)</span><span>stronger colour: more air behind the pixel</span></div></div>'
+       : '<p class="note">No map of its own. The ' + MAPS.length + ' caverns with one are every cavern on a frontier, the largest by each measure, and the largest few of each distance band.</p>') +
+    '<div><button type="button" class="btn ghost" id="locate">Show on the map at true scale</button></div>';
+  $('copy').onclick = () => {
+    const done = () => { $('copy').textContent = 'Copied'; setTimeout(() => { if ($('copy')) $('copy').textContent = 'Copy'; }, 1600); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($('tpText')); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); $('copy').textContent = 'Selected, press Ctrl+C'; };
+    try { navigator.clipboard.writeText(tp(c)).then(done, fallback); } catch (e) { fallback(); }
+  };
+  $('locate').onclick = () => { setMode('lin'); focusOn(c); mapEl.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); };
+  drawCavern();
+}
+function select(c, quiet) { selected = c; renderDetail(); drawMap(); drawChart(); markRow(); if (!quiet && window.innerWidth <= 900) $('detailPanel').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+
+/* ---- the list ---- */
+const COLS = [
+  { key: 'dist', name: 'Distance', get: c => c.dist, show: c => far(c.dist) },
+  { key: 'tp', name: '/tp', cls: 'tp', get: c => c.x, show: c => c.x + ' ' + c.y + ' ' + c.z },
+  { key: 'vol', name: 'Total', get: c => c.vol, show: c => int(c.vol) },
+  { key: 'free', name: 'Outside deep dark', get: c => c.free, show: c => int(c.free) },
+  { key: 'share', name: 'Deep dark', get: c => c.dd / c.vol, show: c => c.dd ? (c.dd / c.vol * 100).toFixed(1) + '%' : 'none' },
+  { key: 'fr', name: 'Largest within its distance', cls: 'fr', get: c => (c.flags & 1 ? 4 : 0) + (c.flags & 2 ? 2 : 0) + (c.flags & 4 ? 1 : 0), show: c => SERIES.filter(s => c.flags & s.bit).map(s => '<span class="dot" style="background:var(--' + s.token + ')" title="' + s.name + '"></span>').join('') + (c.flags ? ' ' + SERIES.filter(s => c.flags & s.bit).map(s => s.short).join(', ') : '') },
+  { key: 'game', name: 'Game code', get: c => c.game, show: c => c.game ? 'confirmed' : '' }];
+const FILTERS = [['all', 'all measured caverns', c => true], ['front', 'caverns on a frontier', c => c.flags], ['map', 'caverns with their own map', c => c.map >= 0], ['clean', 'caverns with no deep dark', c => !c.dd && !c.zoom], ['game', 'caverns confirmed by the game code', c => c.game]];
+let sortKey = 'vol', sortDir = -1, shown = 60, listed = [];
+function renderHead() { $('head').innerHTML = COLS.map(col => '<th class="' + (col.cls || '') + '"' + (col.key === sortKey ? ' aria-sort="' + (sortDir > 0 ? 'ascending' : 'descending') + '"' : '') + '><button type="button" data-key="' + col.key + '">' + col.name + (col.key === sortKey ? (sortDir > 0 ? ' &uarr;' : ' &darr;') : '') + '</button></th>').join(''); }
+function renderRows() {
+  const test = FILTERS.find(f => f[0] === $('filter').value)[2], q = $('search').value.trim(), col = COLS.find(c => c.key === sortKey);
+  listed = C.filter(c => test(c) && (!q || (c.x + ' ' + c.y + ' ' + c.z).indexOf(q) >= 0)).sort((a, b) => (col.get(a) - col.get(b)) * sortDir || b.vol - a.vol);
+  $('rows').innerHTML = listed.slice(0, shown).map(c => '<tr tabindex="0" data-i="' + c.i + '"' + (c === selected ? ' class="on"' : '') + '>' + COLS.map(k => '<td class="' + (k.cls || '') + '">' + k.show(c) + '</td>').join('') + '</tr>').join('');
+  $('count').textContent = int(Math.min(shown, listed.length)) + ' of ' + int(listed.length) + ' shown'; $('more').hidden = shown >= listed.length;
+}
+function markRow() { Array.prototype.forEach.call($('rows').children, tr => tr.classList.toggle('on', +tr.dataset.i === selected.i)); }
+$('filter').innerHTML = FILTERS.map(f => '<option value="' + f[0] + '">' + f[1] + ' (' + int(C.filter(f[2]).length) + ')</option>').join('');
+$('filter').onchange = () => { shown = 60; renderRows(); }; $('search').oninput = () => { shown = 60; renderRows(); };
+$('more').onclick = () => { shown += 200; renderRows(); };
+$('head').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (sortKey === b.dataset.key) sortDir = -sortDir; else { sortKey = b.dataset.key; sortDir = sortKey === 'dist' || sortKey === 'tp' ? 1 : -1; } renderHead(); renderRows(); };
+const pickRow = e => { const tr = e.target.closest('tr'); if (tr) { select(C[+tr.dataset.i], true); $('detailPanel').scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } };
+$('rows').onclick = pickRow; $('rows').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickRow(e); } };
+
+/* ---- start ---- */
+const fronts = C.filter(c => c.flags), checked = C.filter(c => c.game).length;
+$('lede').textContent = 'Large biomes, Minecraft 26.3. ' + int(C.length) + ' caverns measured from ' + far(Math.min.apply(null, C.map(c => c.dist))) + ' blocks out to the corners of the world; the largest holds ' + int(VMAX) + ' blocks of air. ' +
+  fronts.length + ' of them are the largest within their distance of (0, 0) by one of three measures, and the volume of each of those was confirmed block for block with the game code. Pick a cavern on the map, the chart or the list.';
+$('foot').textContent = 'A cavern is the underground air within 3 blocks of a connected core of 7 x 7 x 7 air cubes, from the noise terrain and aquifers alone (no carvers, structures or features). Deep dark is counted by the biome of the 4 x 4 x 4 cell an air block is in. ' +
+  'The search measured the most promising sites of each distance scale, so a larger cavern at some distance is not excluded. ' + checked + ' caverns were re-measured with the game code.';
+function redraw() { readTheme(); drawMap(); drawChart(); drawCavern(); }
+readTheme(); renderHead(); renderRows();
+(location.hash || '').slice(1).split('.').forEach(t => { if (t === 'lin') view.mode = 'lin'; else if (/^c\d+$/.test(t) && C[+t.slice(1)]) selected = C[+t.slice(1)]; });
+$('modeLog').setAttribute('aria-pressed', view.mode === 'log'); $('modeLin').setAttribute('aria-pressed', view.mode === 'lin');
+renderDetail(); drawMap(); drawChart(); markRow();
+if (/(^|\.)focus(\.|$)/.test((location.hash || '').slice(1))) focusOn(selected);
+let pending = 0; const later = () => { cancelAnimationFrame(pending); pending = requestAnimationFrame(redraw); };
+window.addEventListener('resize', later);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', later);
+new MutationObserver(later).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+})();
+</script>
