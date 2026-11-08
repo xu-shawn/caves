@@ -8,6 +8,13 @@ against the game's own terrain code. All 1,637 caverns of 40M+ found are in `res
 - `docs/PROGRESSION.pdf`: how the search got there, with the fits.
 - `docs/TESTING.md`: how each kind of claim (exact, equivalent, better) is tested.
 
+## Ice caves (26.4-snapshot-3)
+
+`icecaves/` applies the same method to the ice caves biome added in 26.4-snapshot-3: the largest cavern that is ice
+caves throughout. Best found: **6,286,232 blocks**, seed `1844768299621927670`, `/tp -17555309 -37 10018737`, checked
+on the snapshot's own terrain and biome source. See `icecaves/README.md`, the table in `icecaves/RESULTS.md` and the
+write-up `icecaves/docs/ICECAVES.pdf`.
+
 ## The measure
 
 A cavern is underground air within 3 blocks of a 6-connected core of 7×7×7 air cubes. Only the noise terrain and

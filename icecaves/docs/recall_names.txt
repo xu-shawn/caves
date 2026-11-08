@@ -1,0 +1,12 @@
+old_lists | two lists, 700 + 350 fine looks (as before)
+p900 | index, 900 + 150 fine looks
+p300 | index, 300 + 50
+p100 | index, 100 + 20
+own_half | index, 300 + 50, half the pairs dropped by own weirdness
+own_third | index, 300 + 50, two thirds dropped
+own_third_p600 | index, 600 + 100, two thirds dropped
+own_fifth_p600 | index, 600 + 100, four fifths dropped
+own_quarter_2m_p600 | index, 600 + 100, two million pairs, three quarters dropped
+minq2 | index, 300 + 50, first look only where 2+ quarters are in the box
+minq3 | index, 300 + 50, first look only where 3+ quarters are in the box
+pairs500k | index, 300 + 50, the best half million pairs by cave noise

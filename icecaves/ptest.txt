@@ -1,0 +1,14 @@
+b_s10: 651 seeds, 10.0 thread-s a seed (scanner 4.7, formula 1.0, measure 4.3); 653 of 2M+, 348 of 2.5M+, 106 of 3M+, 27 of 3.5M+; largest 4,713,951
+   (b_s10: 214 s of wall time with 31 jobs)
+b_s8: 651 seeds, 12.2 thread-s a seed (scanner 5.2, formula 1.1, measure 5.9); 885 of 2M+, 551 of 2.5M+, 203 of 3M+, 46 of 3.5M+; largest 4,713,951
+b_s6: 651 seeds, 13.4 thread-s a seed (scanner 5.5, formula 1.1, measure 6.8); 1166 of 2M+, 807 of 2.5M+, 292 of 3M+, 66 of 3.5M+; largest 4,713,951
+   (b_s6: 286 s of wall time with 31 jobs)
+b_s8_32m_w40: 651 seeds, 12.7 thread-s a seed (scanner 5.2, formula 1.1, measure 6.5); 988 of 2M+, 630 of 2.5M+, 233 of 3M+, 59 of 3.5M+; largest 4,713,951
+   (b_s8_32m_w40: 271 s of wall time with 31 jobs)
+b_s4: 651 seeds, 14.0 thread-s a seed (scanner 6.1, formula 1.1, measure 6.9); 1223 of 2M+, 921 of 2.5M+, 307 of 3M+, 55 of 3.5M+; largest 4,713,951
+   (b_s4: 299 s of wall time with 31 jobs)
+b_s6_32m_w40: 651 seeds, 13.6 thread-s a seed (scanner 5.4, formula 1.1, measure 7.0); 1184 of 2M+, 835 of 2.5M+, 316 of 3M+, 64 of 3.5M+; largest 4,713,951
+b_s6_64m_w45: 651 seeds, 13.0 thread-s a seed (scanner 5.0, formula 1.1, measure 6.9); 1245 of 2M+, 846 of 2.5M+, 304 of 3M+, 58 of 3.5M+; largest 4,592,650
+   (b_s6_64m_w45: 277 s of wall time with 31 jobs)
+b_s6_own8: 651 seeds, 19.6 thread-s a seed (scanner 11.4, formula 1.2, measure 7.0); 1037 of 2M+, 746 of 2.5M+, 271 of 3M+, 67 of 3.5M+; largest 4,713,951
+   (b_s6_own8: 418 s of wall time with 31 jobs)

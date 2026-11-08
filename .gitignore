@@ -2,6 +2,7 @@
 *
 !*/
 !*.*
+!LICENSE
 
 # The game itself (Mojang's): server jar, libraries, decompiled sources, data. Fetch your own into mc/ (see README).
 /mc/

@@ -1,0 +1,31 @@
+The runs ended on 7 October at 12:45 UTC with the box's budget. To go on: the gate on two laptop threads feeding ten
+workers (`gaterun.sh NAME spec_p1.txt 2 10`), or on a card (`fleet/`), with `seed.sh`'s defaults (complete from 4M) or the
+largest-only settings of section 6.
+----
+**A record is a cave sealed inside one patch of ice caves, and the larger the cave the rarer that is.** Of the
+scanner's clusters, 47% of those of 450 to 500 points stay inside the ice caves in the exact test, 15% of those of
+600 to 650, 6% at 700 to 800 and 3.7% at 800 to 900 (a point is 8,400 blocks). The ones that leave do so by the
+weirdness (68%; continentalness 18%, depth 9%, temperature 6%) and at the floor (55% between y -64 and -45, where
+under an ocean a weirdness of 0.25 to 0.3 is needed and the caves are widest).
+
+**The patch is barely larger than the cavern.** Around a candidate, the columns that are ice caves from y -56 to 16
+form a patch of 0.37 to 0.85 km^2^ (10 to 90%; median 0.55), with 80% of its edge set by the weirdness
+(`icelobe`). A square of 512 blocks inside such a patch is rare: 22 among 3.2 million such columns of 2,400 gated
+worlds (`icepatch`), while a cavern of 5 to 6 million blocks is 800 to 1,000 blocks long. Among the caverns that
+pass, size does not go with the patch's area (they hold 7 to 14 blocks of cavern a column of it), but the chance to
+pass does: 1 to 2% of the clusters of 700+ points in patches under 0.5 km^2^, 5 to 7% from 0.65.
+
+**Nothing at seed level is left.** Among 128 caverns of 4.3M+ no layer of 29 shows an effect (largest 2.7 sigma);
+the count of a seed's large caverns is Poisson; and the weirdness octave of 256-block cells, which could have
+been wrong for large patches, is right (mid-cell: +0.23 a stack on patches 256 wide, +0.48 +- 0.23 on those 512
+wide). The gate's windows are within 5% of each layer's best.
+
+**What moved the tail was a leak, not a gate.** Testing the nearly pure clusters took the caverns of 5M+ from 0.23
+to 0.90 per 1,000 seeds and the e-fold above 4M from 0.23M to 0.30M +- 0.02. Wider versions add nothing: 900 exact
+tests of large clusters with 2 to 5% of their samples outside gave nothing over 2.8M. Left to do is compute, and
+spending it on the largest only: with 700 fine looks, the formula from 560 points and the exact test from 530 pure
+or 650 nearly pure samples, a seed takes two thirds of the time and 46 of the 49 known caverns of 4.7M+ are still
+found (the policy of the last runs, box4 and prod6: their counts are complete from 4.7M only).
+
+**The strict rule.** At the top, three caverns in four whose core is ice caves throughout have a few blocks of their
+3-block rim outside. They are listed separately.

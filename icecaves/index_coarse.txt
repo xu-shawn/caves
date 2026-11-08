@@ -1,0 +1,5 @@
+intercept -9.14782
+pure 0.0269786
+sealed 0.0230804
+ice 0.396758
+total -0.274884
